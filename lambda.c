@@ -1,8 +1,17 @@
 #include "lambda.h"
 #include "primitives.h"
 
-Exp *make_int(int val) {
-  Exp *exp = (Exp *)malloc(sizeof(Exp));
+static Exp *safe_malloc() {
+  void *p = malloc(sizeof(Exp));
+  if (p == NULL) {
+    fprintf(stderr, "Fatal: failed to allocate %zu bytes for expression.\n", sizeof(Exp));
+    exit(1);
+  }
+  return p;
+}
+
+Exp *make_int(unsigned int val) {
+  Exp *exp = safe_malloc();
   exp->type = EXP_INT;
   exp->data.int_val = val;
   exp->inferred_type = NULL;
@@ -10,7 +19,7 @@ Exp *make_int(int val) {
 }
 
 Exp *make_bool(bool val) {
-  Exp *exp = malloc(sizeof(Exp));
+  Exp *exp = safe_malloc();
   exp->type = EXP_BOOL;
   exp->data.bool_val = val;
   exp->inferred_type = NULL;
@@ -18,7 +27,7 @@ Exp *make_bool(bool val) {
 }
 
 Exp *make_var(const char *name) {
-  Exp *exp = malloc(sizeof(Exp));
+  Exp *exp = safe_malloc();
   exp->type = EXP_VAR;
   exp->data.var_name = strdup(name);
   exp->inferred_type = NULL;
@@ -26,7 +35,7 @@ Exp *make_var(const char *name) {
 }
 
 Exp *make_lambda(const char *param, Exp *body) {
-  Exp *exp = (Exp *)malloc(sizeof(Exp));
+  Exp *exp = (Exp *)safe_malloc();
   exp->type = EXP_LAMBDA;
   exp->data.lambda.param = strdup(param);
   exp->data.lambda.body = body;
@@ -35,7 +44,7 @@ Exp *make_lambda(const char *param, Exp *body) {
 }
 
 Exp *make_apply(Exp *fn, Exp *arg) {
-  Exp *exp = (Exp *)malloc(sizeof(Exp));
+  Exp *exp = (Exp *)safe_malloc();
   exp->type = EXP_APPLY;
   exp->data.apply.fn = fn;
   exp->data.apply.arg = arg;
@@ -44,7 +53,7 @@ Exp *make_apply(Exp *fn, Exp *arg) {
 }
 
 Exp *make_let(const char *var, Exp *e1, Exp *e2) {
-  Exp *exp = (Exp *)malloc(sizeof(Exp));
+  Exp *exp = safe_malloc();
   exp->type = EXP_LET;
   exp->data.let.var = strdup(var);
   exp->data.let.e1 = e1;
@@ -54,7 +63,7 @@ Exp *make_let(const char *var, Exp *e1, Exp *e2) {
 }
 
 Exp *make_unit() {
-  Exp *exp = (Exp *)malloc(sizeof(Exp));
+  Exp *exp = safe_malloc();
   exp->type = EXP_UNIT;
   exp->inferred_type = NULL;
   return exp;
@@ -84,26 +93,26 @@ Value apply_primitive(Value prim, Value arg) {
     exit(1);
   }
 
-  // Store the argument
   if (prim.data.primitive.num_args < 1) {
     prim.data.primitive.arg1 = &arg;
-    ++prim.data.primitive.num_args;
+    ++(prim.data.primitive.num_args);
   } else if (prim.data.primitive.num_args < 2) {
     prim.data.primitive.arg2 = &arg;
-    ++prim.data.primitive.num_args;
+    ++(prim.data.primitive.num_args);
   } else if (prim.data.primitive.num_args < 3) {
     prim.data.primitive.arg3 = &arg;
-    ++prim.data.primitive.num_args;
+    ++(prim.data.primitive.num_args);
   }
-
-  // Check if we have enough arguments to evaluate
   switch (prim.data.primitive.op) {
+  case PRIM_SUCC:
+    if (prim.data.primitive.num_args == 1)
+      return prim_succ(*prim.data.primitive.arg1);
+    break;
   case PRIM_ADD:
   case PRIM_SUBTRACT:
   case PRIM_MULTIPLY:
   case PRIM_EQUALS:
     if (prim.data.primitive.num_args == 2) {
-      // Binary operation, we have both arguments
       switch (prim.data.primitive.op) {
       case PRIM_ADD:
         return prim_add(*prim.data.primitive.arg1, *prim.data.primitive.arg2);
@@ -116,6 +125,7 @@ Value apply_primitive(Value prim, Value arg) {
       case PRIM_EQUALS:
         return prim_equals(*prim.data.primitive.arg1,
                            *prim.data.primitive.arg2);
+      case PRIM_IF:
       default:
         break;
       }
@@ -137,6 +147,7 @@ Value apply_primitive(Value prim, Value arg) {
 
 Value *lookup_env(const char *name, Env *env) {
   while (env != NULL) {
+	printf("c");
     if (strcmp(env->name, name) == 0) {
       return &env->value;
     }
@@ -204,6 +215,8 @@ Value eval(Exp *exp, Env *env) {
   Value *lookup_result;
   Value arg_val;
 
+printf("a\n");
+
   switch (exp->type) {
   case EXP_UNIT:
     result.type = VAL_UNIT;
@@ -245,7 +258,6 @@ Value eval(Exp *exp, Env *env) {
     // Evaluate the argument expression
     arg_val = eval(exp->data.apply.arg, env);
     if (fn_val.type == VAL_CLOSURE) {
-
       // Create an extended environment for the function application
       Env *new_env = extend_env(fn_val.data.closure.param, arg_val,
                                 fn_val.data.closure.env);

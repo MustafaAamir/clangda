@@ -7,10 +7,16 @@
 level current_level = 0;
 typevar_id current_typevar = 0;
 
-void enter_level() { current_level++; }
-void exit_level() { current_level--; }
+void enter_level() {
+  current_level++;
+}
+void exit_level() {
+  current_level--;
+}
 
-typevar_id new_typevar_id() { return ++current_typevar; }
+typevar_id new_typevar_id() {
+  return ++current_typevar;
+}
 
 Type *new_typevar() {
   Type *type = (Type *)malloc(sizeof(
@@ -23,9 +29,9 @@ Type *new_typevar() {
   return type;
 }
 
-Type *type_unit() {
+Type *new_MT_type(int kind) {
   Type *type = (Type *)malloc(sizeof(Type));
-  type->kind = TYPE_UNIT;
+  type->kind = kind;
   return type;
 }
 
@@ -48,9 +54,10 @@ TypeVar *make_typevar(typevar_id id, level level) {
 // Check if type variable occurs in a type (occurs check)
 bool occurs(typevar_id id, level lvl, Type *type) {
   switch (type->kind) {
+  case TYPE_INT:
+  case TYPE_BOOL:
   case TYPE_UNIT:
     return false;
-
   case TYPE_VAR:
     if (type->data.var->kind == BOUND) {
       return occurs(id, lvl, type->data.var->data.type);
@@ -88,9 +95,10 @@ void unify(Type *t1, Type *t2) {
   }
 
   // Main unification logic
-  if (t1->kind == TYPE_UNIT && t2->kind == TYPE_UNIT) {
-    return; // Unit types always unify
-  } else if (t1->kind == TYPE_VAR && t2->kind == TYPE_VAR &&
+  if (t1->kind == TYPE_INT && t2->kind == TYPE_INT) return;
+  else if (t1->kind == TYPE_BOOL && t2->kind == TYPE_BOOL) return;
+  else if (t1->kind == TYPE_UNIT && t2->kind == TYPE_UNIT) return;
+  else if (t1->kind == TYPE_VAR && t2->kind == TYPE_VAR &&
              t1->data.var->kind == UNBOUND && t2->data.var->kind == UNBOUND &&
              t1->data.var->data.free.id == t2->data.var->data.free.id) {
     return; // Same type variable, already unified
@@ -125,8 +133,10 @@ void unify(Type *t1, Type *t2) {
     exit(1);
   }
 }
-void collect_typevars(Type *t, TVList *tvs, int *count) {
+void collect_typevars(Type *t, TVList *tvs, unsigned int *count) {
   switch (t->kind) {
+  case TYPE_INT:
+  case TYPE_BOOL:
   case TYPE_UNIT:
     break;
   case TYPE_VAR:
@@ -168,7 +178,7 @@ void collect_typevars(Type *t, TVList *tvs, int *count) {
 // Generalize a type to a polymorphic type
 PolyType *generalize(Type *type) {
   TVList *tvs = NULL;
-  int count = 0;
+  unsigned int count = 0;
   // Collect type variables
   collect_typevars(type, tvs, &count);
 
@@ -206,8 +216,9 @@ PolyType *dont_generalize(Type *type) {
 Type *instantiate_type(Type *t, TVMap *map) {
   switch (t->kind) {
   case TYPE_UNIT:
-    return type_unit();
-
+  case TYPE_INT:
+  case TYPE_BOOL:
+    return new_MT_type(t->kind);
   case TYPE_VAR:
     if (t->data.var->kind == BOUND) {
       return instantiate_type(t->data.var->data.type, map);
@@ -234,6 +245,8 @@ Type *instantiate_type(Type *t, TVMap *map) {
   case TYPE_FUNCTION:
     return type_function(instantiate_type(t->data.function.param, map),
                          instantiate_type(t->data.function.result, map));
+  default:
+    fprintf(stderr, "001 Not implemented");
   }
   // Should never reach here
   return NULL;
@@ -253,8 +266,6 @@ Type *instantiate(PolyType *polytype) {
     entry->next = map;
     map = entry;
   }
-
-  // Helper function to instantiate a type
   // Instantiate the type
   Type *result = instantiate_type(polytype->type, map);
 
@@ -294,6 +305,8 @@ void free_type(Type *type) {
 
   switch (type->kind) {
   case TYPE_UNIT:
+  case TYPE_INT:
+  case TYPE_BOOL:
     break;
 
   case TYPE_VAR:
@@ -372,6 +385,10 @@ char *type_to_string_rec(Type *t, bool is_function_param,
   switch (t->kind) {
   case TYPE_UNIT:
     return strdup("unit");
+  case TYPE_INT:
+    return strdup("int");
+  case TYPE_BOOL:
+    return strdup("bool");
 
   case TYPE_VAR:
     if (t->data.var->kind == BOUND) {
@@ -399,25 +416,15 @@ char *type_to_string_rec(Type *t, bool is_function_param,
     return strdup(buffer);
   }
   }
-
-  // Should never reach here
   return strdup("unknown");
 }
 
-// Utility: convert type to string
 char *type_to_string(Type *type) {
-  // Map to keep track of type variables
-
-  VarNameEntry var_names[100]; // Max 100 type variables
+  VarNameEntry var_names[256]; 
   int var_count = 0;
-
-  // Get the string representation
   char *result = type_to_string_rec(type, false, var_names, &var_count);
-
-  // Free temporary var names
   for (int i = 0; i < var_count; i++) {
     free(var_names[i].name);
   }
-
   return result;
 }

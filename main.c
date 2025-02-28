@@ -2,6 +2,7 @@
 #include "lambda.h"
 #include "parser.h"
 #include "primitives.h"
+#include <errno.h>
 #include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +10,6 @@
 
 #define INPUT_BUFFER_SIZE 1024
 
-// Global error handling
 jmp_buf error_jmp_buf;
 char error_message[256];
 
@@ -18,85 +18,133 @@ void throw_error(const char *message) {
   error_message[255] = '\0';
   longjmp(error_jmp_buf, 1);
 }
+#define MAX_LINE_LENGTH 1024
+bool process_file_line_by_line(const char *filename, Env *runtime_env, TypeEnv *type_env) {
+  FILE *file = NULL;
+  char line[MAX_LINE_LENGTH];
+  int line_count = 0;
 
-int main() {
-  char input[INPUT_BUFFER_SIZE];
+  // Open the file
+  file = fopen(filename, "r");
+  if (!file) {
+    fprintf(stderr, "Error opening file '%s': %s\n", filename, strerror(errno));
+    return false;
+  }
 
-  // Initialize environments
-  Env *runtime_env = init_standard_env();
-  TypeEnv *type_env = init_standard_type_env();
-  Exp *exp = make_apply(make_apply(make_var("add"), make_int(1)), make_int(2));
-  Type *type = infer(exp, type_env);
-  char *type_str = type_to_string(type);
+  // Read and process the file line by line
+  while (fgets(line, sizeof(line), file) != NULL) {
+    line_count++;
 
-  // Evaluate
-  Value result = eval(exp, runtime_env);
-
-  // Print results
-  printf("Type: %s\n", type_str);
-  printf("Value: ");
-  string_of_value(result);
-  printf("\n\n");
-
-  printf("Lambda Calculus Interpreter with Hindley-Milner Type Inference\n");
-  printf("Type 'exit' to quit\n\n");
-
-  while (1) {
-    printf("> ");
-    if (fgets(input, INPUT_BUFFER_SIZE, stdin) == NULL) {
-      break;
-    }
-
-    // Remove newline
-    input[strcspn(input, "\n")] = '\0';
-
-    // Check for exit
-    if (strcmp(input, "exit") == 0) {
-      break;
+    // Remove trailing newline if present
+    size_t line_len = strlen(line);
+    if (line_len > 0 && line[line_len - 1] == '\n') {
+      line[line_len - 1] = '\0';
+      line_len--;
     }
 
     // Skip empty lines
-    if (strlen(input) == 0) {
+    if (line_len == 0) {
       continue;
     }
 
-    // Reset type inference state
-    current_level = 0;
-    current_typevar = 0;
+    // Process the line
+    printf("Line %d: %s\n", line_count, line);
 
-    // Parse and evaluate with error handling
     Exp *exp = NULL;
 
     if (setjmp(error_jmp_buf) == 0) {
-      // Normal execution path
+      exp = parse(line);
+      printf("Expression: ");
+      print_exp(exp);
+      printf("\n");
 
-      // Parse the input
-      exp = parse(input);
-
-      // Type inference
       Type *type = infer(exp, type_env);
       char *type_str = type_to_string(type);
-
-      // Evaluate
-      Value result = eval(exp, runtime_env);
-
-      // Print results
       printf("Type: %s\n", type_str);
+
+      Value result = eval(exp, runtime_env);
       printf("Value: ");
       string_of_value(result);
       printf("\n\n");
 
+      // Free the expression when done
     } else {
-      throw_error(error_message);
-      if (exp != NULL) {
-        free_exp(exp);
-      }
+      fprintf(stderr, "Error on line %d: %s\n\n", line_count, error_message);
     }
   }
 
-  // Free environments
-  free_env(runtime_env);
-  free_type_env(type_env);
+  // Check if we stopped because of an error
+  if (ferror(file)) {
+    fprintf(stderr, "Error reading file: %s\n", strerror(errno));
+    fclose(file);
+    return false;
+  }
 
-  return 0;
+  // Cleanup
+  fclose(file);
+  return true;
+}
+void debug(Env *runtime_env, TypeEnv *type_env) {
+  Exp *exp = make_apply(make_apply(make_lambda("x", make_lambda("y", make_var("x"))), make_int(1)), make_int(2));
+  Type *type = infer(exp, type_env);
+  char *type_str = type_to_string(type);
+  Value result = eval(exp, runtime_env);
+  printf("Type: %s\n", type_str);
+  printf("Value: ");
+  string_of_value(result);
+  printf("\n\n");
+}
+
+int main(int argc, char *argv[]) {
+  char input[INPUT_BUFFER_SIZE];
+  Env *runtime_env = init_standard_env();
+  TypeEnv *type_env = init_standard_type_env();
+  // debug(runtime_env, type_env);
+  printf("Lambda Calculus Interpreter with Hindley-Milner Type Inference\n");
+  printf("Type 'exit' to quit\n\n");
+  if (argc == 2) {
+    const char *filename = argv[1];
+    if (!process_file_line_by_line(filename, runtime_env, type_env)) {
+      return EXIT_FAILURE;
+    }
+    return EXIT_FAILURE;
+  } else {
+    while (1) {
+      printf("> ");
+      if (fgets(input, INPUT_BUFFER_SIZE, stdin) == NULL) {
+        break;
+      }
+      input[strcspn(input, "\n")] = '\0';
+      if (strcmp(input, "exit") == 0) {
+        break;
+      }
+      if (strlen(input) == 0) {
+        continue;
+      }
+      current_level = 0;
+      current_typevar = 0;
+      Exp *exp = NULL;
+      if (setjmp(error_jmp_buf) == 0) {
+        exp = parse(input);
+        print_exp(exp);
+        printf("\n");
+        Type *type = infer(exp, type_env);
+        char *type_str = type_to_string(type);
+        Value result = eval(exp, runtime_env);
+        printf("Type: %s\n", type_str);
+        printf("Value: ");
+        string_of_value(result);
+        printf("\n\n");
+      } else {
+        throw_error(error_message);
+        if (exp != NULL) {
+          free_exp(exp);
+        }
+      }
+    }
+    // Free environments
+    free_env(runtime_env);
+    free_type_env(type_env);
+    return 0;
+  }
 }

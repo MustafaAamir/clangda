@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "lexer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,8 +10,8 @@ static void expect(Lexer *lexer, TokenType type) {
     lexer_next(lexer);
   } else {
     fprintf(stdout, "%*s\n", lexer->position, "^");
-    fprintf(stderr, "Syntax error: expected token type %d, got %d\n", type,
-            lexer->current.type);
+    fprintf(stderr, "Syntax error: expected token type %s, got %s\n", string_of_tokentype(type),
+            string_of_tokentype(lexer->current.type));
     exit(1);
   }
 }
@@ -74,7 +75,7 @@ static Exp *parse_let(Lexer *lexer) {
 static Exp *parse_atom(Lexer *lexer) {
   switch (lexer->current.type) {
   case TOKEN_INT: {
-    int val = lexer->current.data.int_val;
+    unsigned int val = lexer->current.data.int_val;
     lexer_next(lexer);
     return make_int(val);
   }
@@ -115,7 +116,7 @@ static Exp *parse_atom(Lexer *lexer) {
 
   default:
     fprintf(stderr, "%*s\n", lexer->position, "^");
-    fprintf(stderr, "Syntax error: unexpected token type %d\n", lexer->current.type);
+    fprintf(stderr, "Syntax error: unexpected token type %s\n", string_of_tokentype(lexer->current.type));
     exit(1);
   }
 }
@@ -139,7 +140,9 @@ static Exp *parse_application(Lexer *lexer) {
 }
 
 // Parse an expression
-static Exp *parse_expr(Lexer *lexer) { return parse_application(lexer); }
+static Exp *parse_expr(Lexer *lexer) {
+  return parse_application(lexer);
+}
 
 // Parse the entire input
 Exp *parse(const char *input) {

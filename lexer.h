@@ -17,6 +17,7 @@ typedef enum {
   TOKEN_UNIT
 } TokenType;
 
+
 typedef struct {
   TokenType type;
   union {
@@ -37,3 +38,4 @@ Lexer *lexer_init(const char *input);
 void lexer_next(Lexer *lexer);
 void lexer_free(Lexer *lexer);
 void token_free(Token *token);
+char *string_of_tokentype(TokenType tt);

@@ -4,13 +4,11 @@
 
 extern void throw_error(const char *message);
 
-// Primitive operations
 Value prim_add(Value a, Value b) {
   if (a.type != VAL_INT || b.type != VAL_INT) {
     fprintf(stderr, "Type error: add expects two integers\n");
     exit(1);
   }
-
   Value result;
   result.type = VAL_INT;
   result.data.int_val = a.data.int_val + b.data.int_val;
@@ -78,15 +76,25 @@ Value prim_if(Value cond, Value then_val, Value else_val) {
   return cond.data.bool_val ? then_val : else_val;
 }
 
+Value prim_succ(Value val) {
+  if (val.type != VAL_INT) {
+    fprintf(stderr, "Type error: Succ expects an integer argument\n");
+    exit(1);
+  }
+  Value result;
+  result.type = VAL_INT;
+  result.data.int_val = ++val.data.int_val;
+  return result;
+}
+
+// returns a newly constructed env. add
 Env *init_standard_env() {
   Env *env = NULL;
-
-  // Add primitive operations
   env = extend_env("add", make_primitive(PRIM_ADD), env);
   env = extend_env("subtract", make_primitive(PRIM_SUBTRACT), env);
   env = extend_env("multiply", make_primitive(PRIM_MULTIPLY), env);
   env = extend_env("equals", make_primitive(PRIM_EQUALS), env);
   env = extend_env("if", make_primitive(PRIM_IF), env);
-
+  env = extend_env("succ", make_primitive(PRIM_SUCC), env);
   return env;
 }

@@ -1,0 +1,2 @@
+let z = \x.\y.y in z 1 2
+

@@ -1,0 +1,12 @@
+BasedOnStyle: LLVM
+ColumnLimit: 0  # No strict column limit to allow maximum packing
+BinPackParameters: true  # Pack function parameters onto fewer lines
+BinPackArguments: true  # Pack function arguments onto fewer lines
+AllowShortEnumsOnASingleLine: true  # Allow enums to be packed into one line when reasonable
+AllowShortBlocksOnASingleLine: Always  # Allows if, loops, and functions on a single line
+AllowShortFunctionsOnASingleLine: Inline  # Allow short functions to fit on a single line
+BreakBeforeBraces: Attach  # Place opening braces on the same line
+IndentWidth: 2  # Reduce indentation for better packing
+UseTab: Never  # Uses spaces for indentation
+SpacesBeforeTrailingComments: 1  # Ensures one space before inline comments
+

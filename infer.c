@@ -7,20 +7,12 @@
 Type *infer(Exp *exp, TypeEnv *env) {
   switch (exp->type) {
   case EXP_UNIT:
-    return type_unit();
-
+    return new_MT_type(TYPE_UNIT);
   case EXP_INT: {
-    // All integers have type int
-    Type *t = (Type *)malloc(sizeof(Type));
-    t->kind = TYPE_UNIT; // This would be TYPE_INT in a more complete system
-    return t;
+    return new_MT_type(TYPE_INT);
   }
-
   case EXP_BOOL: {
-    // All booleans have type bool
-    Type *t = (Type *)malloc(sizeof(Type));
-    t->kind = TYPE_UNIT; // This would be TYPE_BOOL in a more complete system
-    return t;
+    return new_MT_type(TYPE_BOOL);
   }
 
   case EXP_VAR: {
@@ -130,8 +122,7 @@ TypeEnv *init_standard_type_env() {
   TypeEnv *env = NULL;
 
   // Example: add : int -> int -> int
-  Type *int_type =
-      type_unit(); // In a more complete system, this would be TYPE_INT
+  Type *int_type = new_MT_type(TYPE_INT);
   Type *add_type = type_function(int_type, type_function(int_type, int_type));
   PolyType *add_polytype = dont_generalize(add_type);
   env = extend_type_env("add", add_polytype, env);
@@ -150,8 +141,7 @@ TypeEnv *init_standard_type_env() {
 
   // Example: equals : 'a -> 'a -> bool
   Type *a_type = new_typevar();
-  Type *bool_type =
-      type_unit(); // In a more complete system, this would be TYPE_BOOL
+  Type *bool_type = new_MT_type(TYPE_BOOL);
   Type *equals_type = type_function(a_type, type_function(a_type, bool_type));
   PolyType *equals_polytype = generalize(equals_type);
   env = extend_type_env("equals", equals_polytype, env);
@@ -162,5 +152,13 @@ TypeEnv *init_standard_type_env() {
       bool_type, type_function(b_type, type_function(b_type, b_type)));
   PolyType *if_polytype = generalize(if_type);
   env = extend_type_env("if", if_polytype, env);
+
+// Example: multiply : int -> int -> int
+  Type *succ_type =
+      type_function(int_type, int_type);
+  PolyType *succ_polytype = dont_generalize(succ_type);
+  env = extend_type_env("succ", succ_polytype, env);
+
+
   return env;
 }

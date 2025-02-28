@@ -1,7 +1,4 @@
-// types.h
-#ifndef TYPES_H
-#define TYPES_H
-
+#pragma once
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,9 +14,11 @@ typedef struct TypeVar TypeVar;
 typedef struct TypeEnv TypeEnv;
 typedef struct PolyType PolyType;
 
+
 // Type variable structure
 struct TypeVar {
-  enum { BOUND, UNBOUND } kind;
+  enum { BOUND,
+         UNBOUND } kind;
   union {
     Type *type; // For BOUND
     struct {
@@ -31,10 +30,16 @@ struct TypeVar {
 
 // Type structure
 struct Type {
-  enum { TYPE_UNIT, TYPE_VAR, TYPE_FUNCTION } kind;
+  enum { TYPE_UNIT,
+	  	TYPE_INT,
+		TYPE_BOOL, 
+         TYPE_VAR,
+         TYPE_FUNCTION } kind;
 
   union {
     TypeVar *var; // For TYPE_VAR
+	unsigned int*int_val;
+	bool *bool_val;
     struct {
       Type *param;
       Type *result;
@@ -42,9 +47,11 @@ struct Type {
   } data;
 };
 
+Type *new_MT_type(int kind);
+
 // Polymorphic type (forall a1,...,an. T)
 struct PolyType {
-  int num_typevars;
+  unsigned int num_typevars;
   typevar_id *typevars;
   Type *type;
 };
@@ -70,16 +77,14 @@ typedef struct {
   typevar_id id;
   char *name;
 } VarNameEntry;
-// Global state for type inference
+
 extern level current_level;
 extern typevar_id current_typevar;
 
-// Type system functions
 void enter_level();
 void exit_level();
 typevar_id new_typevar_id();
 Type *new_typevar();
-Type *type_unit();
 Type *type_function(Type *param, Type *result);
 TypeVar *make_typevar(typevar_id id, level level);
 PolyType *generalize(Type *type);
@@ -93,5 +98,3 @@ void free_type(Type *type);
 void free_polytype(PolyType *polytype);
 void free_type_env(TypeEnv *env);
 char *type_to_string(Type *type);
-
-#endif // TYPES_H

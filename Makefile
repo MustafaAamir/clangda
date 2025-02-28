@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g
-LDFLAGS = 
+CFLAGS = -Wall -Wextra -p -g -Wfloat-equal -Wundef -Wconversion -Wunreachable-code  -pedantic
+FASTFLAGS = -Ofast -march=native
 OBJECTS = main.o lambda.o types.o lexer.o parser.o infer.o primitives.o
 TEST_OBJECTS = tests.o lambda.o types.o lexer.o parser.o infer.o primitives.o
 
@@ -37,6 +37,6 @@ primitives.o: primitives.c primitives.h lambda.h
 	$(CC) $(CFLAGS) -c primitives.c
 
 clean:
-	rm -f *.o lambda tests
+	rm -f *.o lambda tests 
 
 .PHONY: all clean

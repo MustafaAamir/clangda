@@ -41,7 +41,9 @@ static void skip_whitespace(Lexer *lexer) {
     }
   }
 }
-static bool is_id_char(char c) { return isalnum(c) || c == '_' || c == '\''; }
+static bool is_id_char(char c) {
+  return isalnum(c) || c == '_' || c == '\'';
+}
 
 // Get the next token
 void lexer_next(Lexer *lexer) {
@@ -117,7 +119,7 @@ void lexer_next(Lexer *lexer) {
       lexer->position++;
     }
 
-    int len = lexer->position - start_pos;
+    unsigned int len = lexer->position - start_pos;
     lexer->column += len;
 
     // Check for keywords
@@ -142,13 +144,11 @@ void lexer_next(Lexer *lexer) {
     return;
   }
 
-  // Unknown character
   fprintf(stderr, "Unexpected character '%c' at line %d, column %d\n",
           lexer->input[lexer->position], lexer->line, lexer->column);
   exit(1);
 }
 
-// Free the lexer
 void lexer_free(Lexer *lexer) {
   if (lexer->current.type == TOKEN_IDENTIFIER) {
     free(lexer->current.data.identifier);
@@ -156,9 +156,27 @@ void lexer_free(Lexer *lexer) {
   free(lexer);
 }
 
-// Free a token
 void token_free(Token *token) {
   if (token->type == TOKEN_IDENTIFIER) {
     free(token->data.identifier);
+  }
+}
+
+char *string_of_tokentype(TokenType tt) {
+  switch (tt) {
+  case TOKEN_EOF: return "EOF\0";
+  case TOKEN_LPAREN: return "LPAREN\0";
+  case TOKEN_RPAREN: return "RPAREN\0";
+  case TOKEN_LAMBDA: return "LAMBDA\0";
+  case TOKEN_DOT: return "DOT\0";
+  case TOKEN_LET: return "LET\0";
+  case TOKEN_EQUALS: return "EQUALS\0";
+  case TOKEN_IN: return "IN\0";
+  case TOKEN_IDENTIFIER: return "IDENTIFIER\0";
+  case TOKEN_INT: return "INT\0";
+  case TOKEN_TRUE: return "TRUE\0";
+  case TOKEN_FALSE: return "FALSE\0";
+  case TOKEN_UNIT: return "UNIT\0";
+  default: return "NotImplemented";
   }
 }
