@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <string.h>
 
-// Helper to evaluate an expression and check the result
 void test_eval(const char *expr, Value expected) {
   printf("Testing: %s\n", expr);
 
@@ -15,10 +14,8 @@ void test_eval(const char *expr, Value expected) {
 
   Value result = eval(exp, env);
 
-  // Check result type
   assert(result.type == expected.type);
 
-  // Check value based on type
   switch (result.type) {
   case VAL_INT:
     assert(result.data.int_val == expected.data.int_val);
@@ -43,7 +40,8 @@ void test_eval(const char *expr, Value expected) {
   case VAL_PRIMITIVE:
     printf("  Result: <primitive> (expected <primitive>)\n");
     break;
-  default: printf("Not implemented yet");
+  default:
+    printf("Not implemented yet");
   }
 }
 
@@ -231,29 +229,29 @@ void test_higher_order() {
 
 // Test multi-argument application
 void test_multi_arg_application() {
-    printf("\n=== Testing Multi-Argument Application ===\n");
-    
-    // Primitive application
-    Value expected_sum = {.type = VAL_INT, .data = {.int_val = 3}};
-    test_eval("add 1 2", expected_sum);
-    
-    // Lambda application with multiple arguments
-    Value expected_first = {.type = VAL_INT, .data = {.int_val = 1}};
-    test_eval("(\\x.\\y.x) 1 2", expected_first);
-    
-    // Lambda application with multiple arguments returning the second argument
-    Value expected_second = {.type = VAL_INT, .data = {.int_val = 2}};
-    test_eval("(\\x.\\y.y) 1 2", expected_second);
-    
-    // More complex lambda applications
-    Value expected_complex = {.type = VAL_INT, .data = {.int_val = 5}};
-    test_eval("(\\f.\\x.f (f x)) (\\y.add y 1) 3", expected_complex);
-    
-    // Nested applications
-    test_eval("(\\f.\\g.\\x.f (g x)) (\\y.add y 1) (\\z.multiply z 2) 2", expected_complex);
-    
-    // Add this to the main function
-    printf("All parsing and application tests passed!\n");
+  printf("\n=== Testing Multi-Argument Application ===\n");
+
+  // Primitive application
+  Value expected_sum = {.type = VAL_INT, .data = {.int_val = 3}};
+  test_eval("add 1 2", expected_sum);
+
+  // Lambda application with multiple arguments
+  Value expected_first = {.type = VAL_INT, .data = {.int_val = 1}};
+  test_eval("(\\x.\\y.x) 1 2", expected_first);
+
+  // Lambda application with multiple arguments returning the second argument
+  Value expected_second = {.type = VAL_INT, .data = {.int_val = 2}};
+  test_eval("(\\x.\\y.y) 1 2", expected_second);
+
+  // More complex lambda applications
+  Value expected_complex = {.type = VAL_INT, .data = {.int_val = 5}};
+  test_eval("(\\f.\\x.f (f x)) (\\y.add y 1) 3", expected_complex);
+
+  // Nested applications
+  test_eval("(\\f.\\g.\\x.f (g x)) (\\y.add y 1) (\\z.multiply z 2) 2", expected_complex);
+
+  // Add this to the main function
+  printf("All parsing and application tests passed!\n");
 }
 
 // Run all tests
@@ -261,7 +259,7 @@ int main() {
   printf("Running Lambda Calculus Interpreter Tests\n");
   printf("=========================================\n");
 
-  //multi-arg application
+  // multi-arg application
   test_multi_arg_application();
   // Basic expressions
   test_basic_expressions();

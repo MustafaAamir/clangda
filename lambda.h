@@ -61,17 +61,17 @@ typedef struct Value {
     bool bool_val;
     Closure closure;
     struct {
+      struct Value *arg2;
+      struct Value *arg1;
+      struct Value *arg3;
       PrimitiveOp op;
       unsigned int num_args;
-      Value *arg1;
-      Value *arg2;
-      Value *arg3;
     } primitive;
   } data;
 } Value;
 
 Value make_primitive(PrimitiveOp op);
-Value apply_primitive(Value prim, Value arg);
+Value apply_primitive(Value *prim, Value *arg);
 
 // Environment for variable bindings
 struct Env {

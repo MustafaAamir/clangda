@@ -83,48 +83,51 @@ Value make_primitive(PrimitiveOp op) {
   v.type = VAL_PRIMITIVE;
   v.data.primitive.op = op;
   v.data.primitive.num_args = 0;
+  v.data.primitive.arg1 = NULL;
+  v.data.primitive.arg2 = NULL;
+  v.data.primitive.arg3 = NULL;
   return v;
 }
 
 // Apply an argument to a primitive
-Value apply_primitive(Value prim, Value arg) {
-  if (prim.type != VAL_PRIMITIVE) {
+Value apply_primitive(Value *prim, Value *arg) {
+  if (prim->type != VAL_PRIMITIVE) {
     fprintf(stderr, "Cannot apply to non-primitive");
     exit(1);
   }
 
-  if (prim.data.primitive.num_args < 1) {
-    prim.data.primitive.arg1 = &arg;
-    ++(prim.data.primitive.num_args);
-  } else if (prim.data.primitive.num_args < 2) {
-    prim.data.primitive.arg2 = &arg;
-    ++(prim.data.primitive.num_args);
-  } else if (prim.data.primitive.num_args < 3) {
-    prim.data.primitive.arg3 = &arg;
-    ++(prim.data.primitive.num_args);
+  if (prim->data.primitive.num_args < 1) {
+    prim->data.primitive.arg2 = arg;
+    ++(prim->data.primitive.num_args);
+  } else if (prim->data.primitive.num_args < 2) {
+    prim->data.primitive.arg1 = arg;
+    ++(prim->data.primitive.num_args);
+  } else if (prim->data.primitive.num_args < 3) {
+    prim->data.primitive.arg3 = arg;
+    ++(prim->data.primitive.num_args);
   }
-  switch (prim.data.primitive.op) {
+  switch (prim->data.primitive.op) {
   case PRIM_SUCC:
-    if (prim.data.primitive.num_args == 1)
-      return prim_succ(*prim.data.primitive.arg1);
+    if (prim->data.primitive.num_args == 1)
+      return prim_succ(*prim->data.primitive.arg1);
     break;
   case PRIM_ADD:
   case PRIM_SUBTRACT:
   case PRIM_MULTIPLY:
   case PRIM_EQUALS:
-    if (prim.data.primitive.num_args == 2) {
-      switch (prim.data.primitive.op) {
+    if (prim->data.primitive.num_args == 2) {
+      switch (prim->data.primitive.op) {
       case PRIM_ADD:
-        return prim_add(*prim.data.primitive.arg1, *prim.data.primitive.arg2);
+        return prim_add(*prim->data.primitive.arg1, *prim->data.primitive.arg2);
       case PRIM_SUBTRACT:
-        return prim_subtract(*prim.data.primitive.arg1,
-                             *prim.data.primitive.arg2);
+        return prim_subtract(*prim->data.primitive.arg1,
+                             *prim->data.primitive.arg2);
       case PRIM_MULTIPLY:
-        return prim_multiply(*prim.data.primitive.arg1,
-                             *prim.data.primitive.arg2);
+        return prim_multiply(*prim->data.primitive.arg1,
+                             *prim->data.primitive.arg2);
       case PRIM_EQUALS:
-        return prim_equals(*prim.data.primitive.arg1,
-                           *prim.data.primitive.arg2);
+        return prim_equals(*prim->data.primitive.arg1,
+                           *prim->data.primitive.arg2);
       case PRIM_IF:
       default:
         break;
@@ -133,21 +136,26 @@ Value apply_primitive(Value prim, Value arg) {
     break;
 
   case PRIM_IF:
-    if (prim.data.primitive.num_args == 3) {
+    if (prim->data.primitive.num_args == 3) {
       // If-then-else, we have all three arguments
-      return prim_if(*prim.data.primitive.arg1, *prim.data.primitive.arg2,
-                     *prim.data.primitive.arg3);
+      return prim_if(*prim->data.primitive.arg1, *prim->data.primitive.arg2,
+                     *prim->data.primitive.arg3);
     }
     break;
   }
-
   // Not enough arguments yet, return the partially applied primitive
-  return prim;
+  return *prim;
+}
+void string_of_value(Value v);
+void string_of_env(Env *env) {
+  printf("Env: {name : %s, value : ", env->name);
+  string_of_value(env->value);
+  printf("}\n");
 }
 
 Value *lookup_env(const char *name, Env *env) {
   while (env != NULL) {
-	printf("c");
+    /*string_of_env(env);*/
     if (strcmp(env->name, name) == 0) {
       return &env->value;
     }
@@ -156,7 +164,6 @@ Value *lookup_env(const char *name, Env *env) {
   return NULL;
 }
 
-// Memory management
 void free_exp(Exp *exp) {
   if (exp == NULL)
     return;
@@ -205,17 +212,14 @@ void free_env(Env *env) {
 void free_value(Value value) {
   if (value.type == VAL_CLOSURE) {
     free(value.data.closure.param);
-    // We do not free the body and environment here to avoid double-freeing
+    // We doot free the body and environment here to avoid double-freeing
   }
 }
 
-// The evaluator
 Value eval(Exp *exp, Env *env) {
   Value result;
   Value *lookup_result;
   Value arg_val;
-
-printf("a\n");
 
   switch (exp->type) {
   case EXP_UNIT:
@@ -266,12 +270,13 @@ printf("a\n");
       result = eval(fn_val.data.closure.body, new_env);
 
       // Free the environment we created (but not the original environments)
-      free(new_env->name);
-      free(new_env);
+      // WHAT WAS I THINKING???? DON'T DO THIS!!!
+      // free(new_env->name);
+      // free(new_env);
 
       return result;
     } else if (fn_val.type == VAL_PRIMITIVE) {
-      return apply_primitive(fn_val, arg_val);
+      return apply_primitive(&fn_val, &arg_val);
     }
   } break;
   case EXP_LET: {
@@ -287,6 +292,7 @@ printf("a\n");
     result = eval(exp->data.let.e2, let_env);
 
     // Free the environment we created
+    // IT MAKES SENSE HERE!!!
     free(let_env->name);
     free(let_env);
 

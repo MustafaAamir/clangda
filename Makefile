@@ -3,6 +3,7 @@ CFLAGS = -Wall -Wextra -p -g -Wfloat-equal -Wundef -Wconversion -Wunreachable-co
 FASTFLAGS = -Ofast -march=native
 OBJECTS = main.o lambda.o types.o lexer.o parser.o infer.o primitives.o
 TEST_OBJECTS = tests.o lambda.o types.o lexer.o parser.o infer.o primitives.o
+LDFLAGS = -lreadline
 
 all: lambda tests
 

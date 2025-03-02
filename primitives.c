@@ -9,6 +9,7 @@ Value prim_add(Value a, Value b) {
     fprintf(stderr, "Type error: add expects two integers\n");
     exit(1);
   }
+  printf("%d, %d\n", a.data.int_val, b.data.int_val);
   Value result;
   result.type = VAL_INT;
   result.data.int_val = a.data.int_val + b.data.int_val;
