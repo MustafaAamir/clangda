@@ -33,7 +33,7 @@ bool process_file_line_by_line(const char *filename, Env *runtime_env, TypeEnv *
     }
 
     // Process the line
-    printf("Line %d: %s\n", line_count, line);
+    printf("%s\n", line);
 
     Exp *exp = NULL;
 
@@ -42,9 +42,9 @@ bool process_file_line_by_line(const char *filename, Env *runtime_env, TypeEnv *
     print_exp(exp);
     printf("\n");
 
-    // Type *type = infer(exp, type_env);
-    // char *type_str = type_to_string(type);
-    // printf("Type: %s\n", type_str);
+    Type *type = infer(exp, type_env);
+    char *type_str = type_to_string(type);
+    printf("Type: %s\n", type_str);
 
     Value result = eval(exp, runtime_env);
     printf("Value: ");
@@ -77,7 +77,6 @@ void debug(Env *runtime_env, TypeEnv *type_env) {
 }
 
 int main(int argc, char *argv[]) {
-  char input[INPUT_BUFFER_SIZE];
   Env *runtime_env = init_standard_env();
   TypeEnv *type_env = init_standard_type_env();
   debug(runtime_env, type_env);

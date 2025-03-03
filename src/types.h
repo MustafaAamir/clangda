@@ -14,7 +14,6 @@ typedef struct TypeVar TypeVar;
 typedef struct TypeEnv TypeEnv;
 typedef struct PolyType PolyType;
 
-
 // Type variable structure
 struct TypeVar {
   enum { BOUND,
@@ -31,15 +30,15 @@ struct TypeVar {
 // Type structure
 struct Type {
   enum { TYPE_UNIT,
-	  	TYPE_INT,
-		TYPE_BOOL, 
+         TYPE_INT,
+         TYPE_BOOL,
          TYPE_VAR,
          TYPE_FUNCTION } kind;
 
   union {
     TypeVar *var; // For TYPE_VAR
-	unsigned int*int_val;
-	bool *bool_val;
+    unsigned int *int_val;
+    bool *bool_val;
     struct {
       Type *param;
       Type *result;

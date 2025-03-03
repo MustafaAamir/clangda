@@ -8,14 +8,22 @@
 
 // Type of expressions
 typedef enum {
-  EXP_UNIT, EXP_INT, EXP_BOOL,
-  EXP_VAR, EXP_LAMBDA, EXP_APPLY,
+  EXP_UNIT,
+  EXP_INT,
+  EXP_BOOL,
+  EXP_VAR,
+  EXP_LAMBDA,
+  EXP_APPLY,
   EXP_LET // Let binding (e.g., let x = e1 in e2)
 } ExpType;
 
 typedef enum {
-  PRIM_ADD, PRIM_SUBTRACT, PRIM_MULTIPLY,
-  PRIM_EQUALS, PRIM_IF, PRIM_SUCC
+  PRIM_ADD,
+  PRIM_SUBTRACT,
+  PRIM_MULTIPLY,
+  PRIM_EQUALS,
+  PRIM_IF,
+  PRIM_SUCC
 } PrimitiveOp;
 
 // Forward declaration for Environment
@@ -26,10 +34,10 @@ typedef struct Exp {
   ExpType type;
   Type *inferred_type;
   union {
-    unsigned int int_val;    // For EXP_INT
-    bool bool_val;  // For EXP_BOOL
-    char *var_name; // For EXP_VAR
-    struct {        // For EXP_LAMBDA
+    unsigned int int_val; // For EXP_INT
+    bool bool_val;        // For EXP_BOOL
+    char *var_name;       // For EXP_VAR
+    struct {              // For EXP_LAMBDA
       char *param;
       struct Exp *body;
     } lambda;
@@ -55,19 +63,21 @@ typedef struct {
 // Value representation for evaluation
 typedef struct Value Value;
 typedef struct Value {
-  enum { VAL_UNIT, VAL_INT, VAL_BOOL, VAL_CLOSURE, VAL_PRIMITIVE } type;
   union {
     unsigned int int_val;
     bool bool_val;
     Closure closure;
     struct {
-      struct Value *arg2;
-      struct Value *arg1;
-      struct Value *arg3;
+      struct Value *args[3];
       PrimitiveOp op;
       unsigned int num_args;
     } primitive;
   } data;
+  enum { VAL_UNIT,
+         VAL_INT,
+         VAL_BOOL,
+         VAL_CLOSURE,
+         VAL_PRIMITIVE } type;
 } Value;
 
 Value make_primitive(PrimitiveOp op);

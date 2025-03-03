@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+
 typedef enum {
   TOKEN_EOF,
   TOKEN_LPAREN,
@@ -16,8 +17,6 @@ typedef enum {
   TOKEN_FALSE,
   TOKEN_UNIT
 } TokenType;
-
-
 typedef struct {
   TokenType type;
   union {
@@ -25,7 +24,6 @@ typedef struct {
     int int_val;
   } data;
 } Token;
-
 typedef struct {
   const char *input;
   int position;
@@ -33,7 +31,6 @@ typedef struct {
   int column;
   Token current;
 } Lexer;
-
 Lexer *lexer_init(const char *input);
 void lexer_next(Lexer *lexer);
 void lexer_free(Lexer *lexer);

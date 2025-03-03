@@ -95,12 +95,15 @@ void unify(Type *t1, Type *t2) {
   }
 
   // Main unification logic
-  if (t1->kind == TYPE_INT && t2->kind == TYPE_INT) return;
-  else if (t1->kind == TYPE_BOOL && t2->kind == TYPE_BOOL) return;
-  else if (t1->kind == TYPE_UNIT && t2->kind == TYPE_UNIT) return;
+  if (t1->kind == TYPE_INT && t2->kind == TYPE_INT)
+    return;
+  else if (t1->kind == TYPE_BOOL && t2->kind == TYPE_BOOL)
+    return;
+  else if (t1->kind == TYPE_UNIT && t2->kind == TYPE_UNIT)
+    return;
   else if (t1->kind == TYPE_VAR && t2->kind == TYPE_VAR &&
-             t1->data.var->kind == UNBOUND && t2->data.var->kind == UNBOUND &&
-             t1->data.var->data.free.id == t2->data.var->data.free.id) {
+           t1->data.var->kind == UNBOUND && t2->data.var->kind == UNBOUND &&
+           t1->data.var->data.free.id == t2->data.var->data.free.id) {
     return; // Same type variable, already unified
   } else if (t1->kind == TYPE_VAR && t1->data.var->kind == UNBOUND) {
     // Check occurs
@@ -248,7 +251,6 @@ Type *instantiate_type(Type *t, TVMap *map) {
   default:
     fprintf(stderr, "001 Not implemented");
   }
-  // Should never reach here
   return NULL;
 }
 
@@ -420,7 +422,7 @@ char *type_to_string_rec(Type *t, bool is_function_param,
 }
 
 char *type_to_string(Type *type) {
-  VarNameEntry var_names[256]; 
+  VarNameEntry var_names[256];
   int var_count = 0;
   char *result = type_to_string_rec(type, false, var_names, &var_count);
   for (int i = 0; i < var_count; i++) {

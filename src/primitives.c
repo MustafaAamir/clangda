@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-extern void throw_error(const char *message);
-
 Value prim_add(Value a, Value b) {
   if (a.type != VAL_INT || b.type != VAL_INT) {
     fprintf(stderr, "Type error: add expects two integers\n");

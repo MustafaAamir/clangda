@@ -3,3 +3,25 @@
 
 (0x415d10) {type = EXP_LAMBDA, inferred_type = 0x0, data = {int_val = 4283712, bool_val = 64, var_name = 0x415d40 "x", lambda = {param = 0x415d40 "x", body = 0x415cc0}, apply = {fn = 0x415d40, arg = 0x415cc0}, l
 
+
+type = struct Value {
+/*      0      |       4 */    enum {VAL_UNIT, VAL_INT, VAL_BOOL, VAL_CLOSURE, VAL_PRIMITIVE} type;
+/* XXX  4-byte hole      */
+/*      8      |      32 */    union {
+/*                     4 */        unsigned int int_val;
+/*                     1 */        _Bool bool_val;
+/*                    24 */        Closure closure;
+/*                    32 */        struct {
+/*      8      |      24 */            struct Value *args[3];
+/*     32      |       4 */            PrimitiveOp op;
+/*     36      |       4 */            unsigned int num_args;
+
+                                       /* total size (bytes):   32 */
+                                   } primitive;
+/* XXX 24-byte padding   */
+
+                                   /* total size (bytes):   32 */
+                               } data;
+
+                               /* total size (bytes):   40 */
+                             }

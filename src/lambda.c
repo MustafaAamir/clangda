@@ -1,6 +1,7 @@
 #include "lambda.h"
 #include "primitives.h"
 
+void string_of_value(Value v);
 static Exp *safe_malloc() {
   void *p = malloc(sizeof(Exp));
   if (p == NULL) {
@@ -83,9 +84,9 @@ Value make_primitive(PrimitiveOp op) {
   v.type = VAL_PRIMITIVE;
   v.data.primitive.op = op;
   v.data.primitive.num_args = 0;
-  v.data.primitive.arg1 = NULL;
-  v.data.primitive.arg2 = NULL;
-  v.data.primitive.arg3 = NULL;
+  v.data.primitive.args[0] = NULL;
+  v.data.primitive.args[1] = NULL;
+  v.data.primitive.args[2] = NULL;
   return v;
 }
 
@@ -95,21 +96,29 @@ Value apply_primitive(Value *prim, Value *arg) {
     fprintf(stderr, "Cannot apply to non-primitive");
     exit(1);
   }
-
-  if (prim->data.primitive.num_args < 1) {
-    prim->data.primitive.arg2 = arg;
+  string_of_value(*arg);
+  switch (prim->data.primitive.num_args) {
+  case 0:
+    prim->data.primitive.args[0] = arg;
     ++(prim->data.primitive.num_args);
-  } else if (prim->data.primitive.num_args < 2) {
-    prim->data.primitive.arg1 = arg;
+    break;
+  case 1:
+    prim->data.primitive.args[1] = arg;
     ++(prim->data.primitive.num_args);
-  } else if (prim->data.primitive.num_args < 3) {
-    prim->data.primitive.arg3 = arg;
+    break;
+  case 2:
+    prim->data.primitive.args[2] = arg;
     ++(prim->data.primitive.num_args);
+    break;
+  default:
+    fprintf(stderr, "Too many arguments for ptimiitive");
+    exit(1);
   }
+
   switch (prim->data.primitive.op) {
   case PRIM_SUCC:
     if (prim->data.primitive.num_args == 1)
-      return prim_succ(*prim->data.primitive.arg1);
+      return prim_succ(*prim->data.primitive.args[0]);
     break;
   case PRIM_ADD:
   case PRIM_SUBTRACT:
@@ -118,16 +127,16 @@ Value apply_primitive(Value *prim, Value *arg) {
     if (prim->data.primitive.num_args == 2) {
       switch (prim->data.primitive.op) {
       case PRIM_ADD:
-        return prim_add(*prim->data.primitive.arg1, *prim->data.primitive.arg2);
+        return prim_add(*prim->data.primitive.args[0], *prim->data.primitive.args[1]);
       case PRIM_SUBTRACT:
-        return prim_subtract(*prim->data.primitive.arg1,
-                             *prim->data.primitive.arg2);
+        return prim_subtract(*prim->data.primitive.args[0],
+                             *prim->data.primitive.args[1]);
       case PRIM_MULTIPLY:
-        return prim_multiply(*prim->data.primitive.arg1,
-                             *prim->data.primitive.arg2);
+        return prim_multiply(*prim->data.primitive.args[0],
+                             *prim->data.primitive.args[1]);
       case PRIM_EQUALS:
-        return prim_equals(*prim->data.primitive.arg1,
-                           *prim->data.primitive.arg2);
+        return prim_equals(*prim->data.primitive.args[0],
+                           *prim->data.primitive.args[1]);
       case PRIM_IF:
       default:
         break;
@@ -138,15 +147,14 @@ Value apply_primitive(Value *prim, Value *arg) {
   case PRIM_IF:
     if (prim->data.primitive.num_args == 3) {
       // If-then-else, we have all three arguments
-      return prim_if(*prim->data.primitive.arg1, *prim->data.primitive.arg2,
-                     *prim->data.primitive.arg3);
+      return prim_if(*prim->data.primitive.args[0], *prim->data.primitive.args[1],
+                     *prim->data.primitive.args[2]);
     }
     break;
   }
   // Not enough arguments yet, return the partially applied primitive
   return *prim;
 }
-void string_of_value(Value v);
 void string_of_env(Env *env) {
   printf("Env: {name : %s, value : ", env->name);
   string_of_value(env->value);

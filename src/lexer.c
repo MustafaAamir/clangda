@@ -164,19 +164,33 @@ void token_free(Token *token) {
 
 char *string_of_tokentype(TokenType tt) {
   switch (tt) {
-  case TOKEN_EOF: return "EOF\0";
-  case TOKEN_LPAREN: return "LPAREN\0";
-  case TOKEN_RPAREN: return "RPAREN\0";
-  case TOKEN_LAMBDA: return "LAMBDA\0";
-  case TOKEN_DOT: return "DOT\0";
-  case TOKEN_LET: return "LET\0";
-  case TOKEN_EQUALS: return "EQUALS\0";
-  case TOKEN_IN: return "IN\0";
-  case TOKEN_IDENTIFIER: return "IDENTIFIER\0";
-  case TOKEN_INT: return "INT\0";
-  case TOKEN_TRUE: return "TRUE\0";
-  case TOKEN_FALSE: return "FALSE\0";
-  case TOKEN_UNIT: return "UNIT\0";
-  default: return "NotImplemented";
+  case TOKEN_EOF:
+    return "EOF\0";
+  case TOKEN_LPAREN:
+    return "LPAREN\0";
+  case TOKEN_RPAREN:
+    return "RPAREN\0";
+  case TOKEN_LAMBDA:
+    return "LAMBDA\0";
+  case TOKEN_DOT:
+    return "DOT\0";
+  case TOKEN_LET:
+    return "LET\0";
+  case TOKEN_EQUALS:
+    return "EQUALS\0";
+  case TOKEN_IN:
+    return "IN\0";
+  case TOKEN_IDENTIFIER:
+    return "IDENTIFIER\0";
+  case TOKEN_INT:
+    return "INT\0";
+  case TOKEN_TRUE:
+    return "TRUE\0";
+  case TOKEN_FALSE:
+    return "FALSE\0";
+  case TOKEN_UNIT:
+    return "UNIT\0";
+  default:
+    return "NotImplemented";
   }
 }

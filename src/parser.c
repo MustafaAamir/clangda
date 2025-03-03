@@ -150,6 +150,7 @@ Exp *parse(const char *input) {
   Exp *result = parse_expr(lexer);
 
   if (lexer->current.type != TOKEN_EOF) {
+    fprintf(stderr, "%*s\n", lexer->position, "^");
     fprintf(stderr, "Syntax error: unexpected tokens after expression\n");
     exit(1);
   }
