@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -p -g -Wfloat-equal -Wundef -Wconversion -Wunreachable-code  -pedantic
+CFLAGS = -Wall -Wextra -p -g -Wfloat-equal -Wundef -Wconversion -Wunreachable-code -pedantic
 FASTFLAGS = -Ofast -march=native
 BIN = bin
 SRC = src
@@ -48,6 +48,6 @@ clean:
 
 .PHONY: format
 format:
-	clang-format -i $(SRC)/*.c $(SRC)/*.h
+	clang-format -style='{IndentWidth: 4, BasedOnStyle: Google}' -i $(SRC)/*.c $(SRC)/*.h
 
 .PHONY: all clean
