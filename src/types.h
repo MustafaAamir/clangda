@@ -16,65 +16,60 @@ typedef struct PolyType PolyType;
 
 // Type variable structure
 struct TypeVar {
-  enum { BOUND,
-         UNBOUND } kind;
-  union {
-    Type *type; // For BOUND
-    struct {
-      typevar_id id;
-      level level;
-    } free; // For UNBOUND
-  } data;
+    enum { BOUND, UNBOUND } kind;
+    union {
+        Type *type;  // For BOUND
+        struct {
+            typevar_id id;
+            level level;
+        } free;  // For UNBOUND
+    } data;
 };
 
 // Type structure
 struct Type {
-  enum { TYPE_UNIT,
-         TYPE_INT,
-         TYPE_BOOL,
-         TYPE_VAR,
-         TYPE_FUNCTION } kind;
+    enum { TYPE_UNIT, TYPE_INT, TYPE_BOOL, TYPE_VAR, TYPE_FUNCTION } kind;
 
-  union {
-    TypeVar *var; // For TYPE_VAR
-    unsigned int *int_val;
-    bool *bool_val;
-    struct {
-      Type *param;
-      Type *result;
-    } function; // For TYPE_FUNCTION
-  } data;
+    union {
+        TypeVar *var;  // For TYPE_VAR
+        unsigned int *int_val;
+        bool *bool_val;
+        struct {
+            Type *param;
+            Type *result;
+        } function;  // For TYPE_FUNCTION
+    } data;
 };
 
 Type *new_MT_type(int kind);
 
 // Polymorphic type (forall a1,...,an. T)
 struct PolyType {
-  unsigned int num_typevars;
-  typevar_id *typevars;
-  Type *type;
+    unsigned int num_typevars;
+    typevar_id *typevars;
+    Type *type;
 };
 
 // Type environment for type inference
 struct TypeEnv {
-  char *name;
-  PolyType *type;
-  TypeEnv *next;
+    char *name;
+    PolyType *type;
+    TypeEnv *next;
 };
 // Collect all type variables that should be generalized
 typedef struct TVList {
-  typevar_id id;
-  struct TVList *next;
+    typevar_id id;
+    struct TVList *next;
 } TVList;
 
 typedef struct TVMap {
-  typevar_id id;
-  Type *type;
-  struct TVMap *next;
+    typevar_id id;
+    Type *type;
+    struct TVMap *next;
 } TVMap;
 typedef struct {
-  typevar_id id;
-  char *name;
+    typevar_id id;
+    char *name;
 } VarNameEntry;
 
 extern level current_level;
