@@ -18,3 +18,5 @@
 2. primitives don't work. Don't use them </3
 
 3. Makefile is a mess. leave it be
+
+4. type system doesn't work. expected int, got 'a
