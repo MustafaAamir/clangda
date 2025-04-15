@@ -1,0 +1,24 @@
+let x = 1 in x # expect 1
+1
+let x = true in x # expect true
+true
+let x = unit in x # expect unit
+unit
+
+let x = \x.x in x 1 # expect 1
+\x.x 1 # expect 1
+let x = \x.x in x true # expect true
+\x.x true # expect true
+let x = \x.x in x unit # expect unit
+\x.x unit # expect unit
+
+let x = \x.\y.x in x true false # true
+\x.\y.x true false # true
+let x = \x.\y.y in x true false # false
+\x.\y.y true false # false
+
+let x = \x.\y.x in x unit 1 # 1
+\x.\y.x unit 1 # 1
+let x = \x.\y.x in x 1 unit # 1
+\x.\y.x 1 unit # 1
+
